@@ -1,0 +1,22 @@
+{% extends "base" %}
+
+{% block title %}
+Medieval SQL Project
+{% endblock title %}
+
+{% block content %}
+<h1>medieval gambling or whatever</h1>
+<hr>
+
+{% if user %}
+<p><i>Hello, {{ user.name }}.</i></p>
+{% if user.admin %}
+<p><a href="/admin">Thou doth wish to organize</a></p>
+{% endif %}
+
+{% else %}
+<p><a href="/login">Speak with the gateman (login)</a> or <a href="/login/new">Speak with the recordkeeper
+		(register)</a></p>
+
+{% endif %}
+{% endblock content %}

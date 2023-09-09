@@ -1,0 +1,25 @@
+{% extends "base" %}
+
+{% block title %}
+Login - {{ business_name }}
+{% endblock title %}
+
+{% block content %}
+<h1>Login</h1>
+<hr>
+
+<p>
+	Welcome back, traveler. Dost thou wish to play?
+</p>
+
+<form action="/login" method="post">
+	<label for="email">Thine lightning-courier address: </label>
+	<input type="email" name="email" id="email" autocomplete="email" placeholder="you@domain.tld">
+	<br>
+	<label for="totp">Thine number of the hour: </label>
+	<input type="text" name="totp" id="totp" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+		placeholder="123456">
+	<br>
+	<button type="submit">Check against the tomes</button>
+</form>
+{% endblock content %}
