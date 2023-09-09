@@ -2,9 +2,7 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::missing_panics_doc)]
 
-use std::fmt::Display;
-
-use rocket::{fs::FileServer, http::Status, Build, Rocket};
+use rocket::{fs::FileServer, Build, Rocket};
 use rocket_dyn_templates::Template;
 
 pub mod db;
