@@ -1,0 +1,28 @@
+{% extends "base" %}
+
+{% block title %}
+Game
+{% endblock title %}
+
+{% block head %}
+
+{{ super() }}
+<link rel="stylesheet" href="/static/blockrain/blockrain.css">
+<link rel="stylesheet" href="/static/game.css">
+<script src="/static/jquery-3.7.1.min.js"></script>
+<script src="/static/blockrain/blockrain.jquery.min.js"></script>
+<script defer src="/static/game.js"></script>
+
+{% endblock head %}
+
+{% block content %}
+<i>Prepare for the battle of the century, by way of "Brand-Neutral Falling Block Puzzle Game"!</i>
+
+<noscript>This page requires JavaScript.</noscript>
+
+<form>
+	<div class="game"></div>
+	<input type="number" disabled="true" id="score">
+	<button type="submit" disabled="true" id="ready">Submit Score</button>
+</form>
+{% endblock content %}
