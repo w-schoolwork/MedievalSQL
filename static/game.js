@@ -21,11 +21,11 @@ $('.game').blockrain({
 	},
 
 	onGameOver: (score) => {
-		document.querySelector('#score').value = score;
+		document.querySelector('#score').value = Math.max(score, document.querySelector('#score').value);
 		document.querySelector('#ready').disabled = false;
 	},
 
 	onLine: (lines, scoreIncrement, score) => {
-		document.querySelector('#score').value = score;
+		document.querySelector('#score').value = Math.max(score, document.querySelector('#score').value);
 	}
 })
