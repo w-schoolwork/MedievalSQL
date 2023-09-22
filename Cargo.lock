@@ -1215,8 +1215,10 @@ dependencies = [
  "rocket",
  "rocket_dyn_templates",
  "sqlx",
+ "thiserror",
  "totp-rs",
  "tracing",
+ "tracing-subscriber",
  "uuid",
 ]
 

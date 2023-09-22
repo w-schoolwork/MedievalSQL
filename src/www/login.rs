@@ -41,6 +41,8 @@ pub enum LoginStatus {
 	BadTOTP,
 	/// The login failed because this user doesn't exist.
 	BadUser,
+	/// The login failed because something is wrong
+	Whoopsie,
 }
 
 /// # Errors
@@ -62,6 +64,7 @@ pub async fn try_login(
 		}
 		LoginStatus::BadTOTP => Err(Status::BadRequest),
 		LoginStatus::BadUser => Err(Status::Unauthorized),
+		LoginStatus::Whoopsie => Err(Status::InternalServerError)
 	}
 }
 
