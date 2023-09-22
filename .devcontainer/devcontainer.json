@@ -4,7 +4,7 @@
 	"name": "Rust and PostgreSQL",
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
-	"workspaceFolder": "${localWorkspaceFolder}",
+	"workspaceFolder": "/ws",
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
