@@ -1,7 +1,7 @@
-use std::ops::Deref;
+use std::{ops::Deref, time::SystemTimeError};
 
-use sqlx::PgPool;
-use totp_rs::TOTP;
+use sqlx::{PgPool, migrate::MigrateError};
+use totp_rs::{TOTP, TotpUrlError};
 use uuid::Uuid;
 
 use crate::www::login::{LoginAttempt, LoginStatus, MakeAccount};
@@ -12,6 +12,12 @@ pub enum Error {
 	DB(#[from] sqlx::Error),
 	#[error("An unexpected data condition was encountered.")]
 	BrokenContract,
+	#[error("Problem working with TOTP URLs")]
+	TOTPError(#[from] TotpUrlError),
+	#[error("Problem running migrations")]
+	MigrateError(#[from] MigrateError),
+	#[error("Problem with clock")]
+	ClockError(#[from] SystemTimeError)
 }
 
 #[derive(Clone)]
@@ -38,15 +44,9 @@ impl Pool {
 		).fetch_optional(&self.0).await? else {
 			return Ok(LoginStatus::BadUser)
 		};
-		let Ok(totp_secret) = TOTP::from_url(totp_secret) else {
-			tracing::error!("user {email} somehow got a bad TOTP stored?");
-			return Err()
-		};
-		let Ok(ok) = totp_secret.check_current(&attempt.totp) else {
-			tracing::error!("couldn't check TOTP for {email} because of bad system time?");
-			return Err()
-		}
-		if  {
+		let totp_secret = TOTP::from_url(totp_secret)?;
+		let ok = totp_secret.check_current(&attempt.totp)?;
+		if ok {
 			Ok(LoginStatus::Success(self.mk_session(user_id).await?))
 		} else {
 			Ok(LoginStatus::BadTOTP)

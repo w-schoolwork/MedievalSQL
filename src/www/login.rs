@@ -102,9 +102,9 @@ pub struct MakeAccountAttempt {
 }
 
 pub struct MakeAccount {
-	uuid: Uuid,
-	email: String,
-	totp: TOTP,
+	pub uuid: Uuid,
+	pub email: String,
+	pub totp: TOTP,
 }
 
 /// # Errors
