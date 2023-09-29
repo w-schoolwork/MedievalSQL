@@ -6,6 +6,15 @@ CREATE TABLE users (
 	totp_secret TEXT UNIQUE NOT NULL
 );
 
+
+CREATE TABLE Location (
+    LocationID UUID PRIMARY KEY,
+    LocationName VARCHAR(100) NOT NULL,
+    Village VARCHAR(50),
+    State VARCHAR(50),
+    Nation VARCHAR(50)
+);
+
 CREATE TABLE Events (
     EventID UUID PRIMARY KEY,
     EventName VARCHAR(100) NOT NULL,
@@ -24,15 +33,6 @@ CREATE TABLE Competitors (
     KnightlyRank VARCHAR(100),
     HorseName VARCHAR(50),
     email TEXT UNIQUE NOT NULL
-);
-
-
-CREATE TABLE Location (
-    LocationID UUID PRIMARY KEY,
-    LocationName VARCHAR(100) NOT NULL,
-    Village VARCHAR(50),
-    State VARCHAR(50),
-    Nation VARCHAR(50)
 );
 
 
