@@ -14,6 +14,8 @@ services:
      - 22123:22
     volumes:
       - ./workspaces:/home/user/ws
+      - ./.gitconfig:/home/user/.gitconfig
+      - ./.ssh:/home/user/.ssh
       - ./ssh:/etc/ssh
     links:
      - db
