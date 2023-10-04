@@ -15,7 +15,7 @@ Create Account
 	<input type="email" name="email" id="email">
 	<br>
 	<label for="uuid">Thine entry number:</label>
-	<input type="text" name="uuid" id="uuid" disabled value={{ uuid }} style="min-width:32ch;">
+	<input type="text" name="uuid" id="uuid" readonly value={{ uuid }} style="min-width:32ch;">
 	<br>
 	<p>
 		The following is thine magical number; thou shalt not share it with others.
@@ -23,7 +23,7 @@ Create Account
 		(Register it in your TOTP authenticator app and provide the current code.)
 	</p>
 	<label for="totp">TOTP Secret:</label>
-	<input type="text" name="totp" id="totp" disabled value={{ totp_url }} style="min-width:100ch;">
+	<input type="text" name="totp" id="totp" readonly value={{ totp_url }} style="min-width:100ch;">
 	<br>
 	<img src={{ totp_qr }} width="150" height="150">
 	<br>

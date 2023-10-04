@@ -5,5 +5,9 @@
       rustup
       bacon
       dig
+      gcc
+      pkg-config
+      openssl
+      postgresql
     ];
   }

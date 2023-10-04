@@ -4,17 +4,43 @@ use rocket::{
 	http::{Cookie, CookieJar, Status},
 	post,
 	response::Redirect,
-	routes, FromForm, Route, State,
+	routes, FromForm, Route, State, request::{FromRequest, Outcome}, async_trait, Request,
 };
 use rocket_dyn_templates::{context, Template};
 use totp_rs::{Rfc6238, Secret, TOTP};
 use uuid::Uuid;
 
-use crate::db::Pool;
+use crate::db::{Pool, self};
 
 #[must_use]
 pub fn routes() -> Vec<Route> {
-	routes![challenge, make_account, try_login, try_make_account]
+	routes![challenge, make_account, try_login, try_make_account, check_logged_in, logout]
+}
+
+#[get("/check")]
+#[must_use]
+pub async fn check_logged_in(logged_in: LoggedInAs, pool: &State<Pool>) -> String {
+	let email = pool.email_of(logged_in.0).await.ok().flatten();
+	if let Some(email) = email {
+		format!("OK, logged in as {email}.")
+	} else {
+		"Somehow logged in as a nonexistent user?".to_string()
+	}
+}
+
+#[get("/logout")]
+#[must_use]
+pub async fn logout(pool: &State<Pool>, cookies: &CookieJar<'_>) -> &'static str {
+	if let Some(cookie) = cookies.get("Authorization") {
+		let secret = cookie.value().to_string();
+		cookies.remove(cookie.clone());
+		if let Err(e) = pool.clobber_session(&secret).await {
+			eprintln!("{e}");
+			return "Something happened?";
+		}
+		return "OK";
+	};
+	"You don't have a login cookie."
 }
 
 #[get("/")]
@@ -102,9 +128,9 @@ pub struct MakeAccountAttempt {
 }
 
 pub struct MakeAccount {
-	pub uuid: Uuid,
+	pub user_id: Uuid,
 	pub email: String,
-	pub totp: TOTP,
+	pub totp_secret: TOTP,
 }
 
 /// # Errors
@@ -116,18 +142,18 @@ pub async fn try_make_account(
 	pool: &State<Pool>,
 	form: Form<MakeAccountAttempt>,
 ) -> Result<Redirect, Status> {
-	let uuid = Uuid::parse_str(&form.uuid).map_err(|_| Status::BadRequest)?;
-	let totp = TOTP::from_url(&form.totp).map_err(|_| Status::BadRequest)?;
+	let user_id = Uuid::parse_str(&form.uuid).map_err(|_| Status::BadRequest)?;
+	let totp_secret = TOTP::from_url(&form.totp).map_err(|_| Status::BadRequest)?;
 
-	let check = totp.check_current(&form.totp_confirm).unwrap();
+	let check = totp_secret.check_current(&form.totp_confirm).unwrap();
 
 	if !check {
 		return Ok(Redirect::temporary("."));
 	}
 
 	let mk_acct = MakeAccount {
-		uuid,
-		totp,
+		user_id,
+		totp_secret,
 		email: form.email.clone(),
 	};
 
@@ -135,4 +161,27 @@ pub async fn try_make_account(
 
 	cookies.add(Cookie::new("Authorization", secret));
 	Ok(Redirect::temporary("/"))
+}
+
+pub struct LoggedInAs(pub Uuid);
+
+#[async_trait]
+impl<'a> FromRequest<'a> for LoggedInAs {
+	type Error = &'static str;
+
+	async fn from_request<'b: 'a>(request: &'a Request<'b>) -> Outcome<Self, Self::Error> {
+		let secret = request.cookies().get("Authorization");
+		if let Some(secret) = secret {
+			let pool: &State<Pool> = match request.guard().await {
+				Outcome::Success(p) => p,
+				_ => return Outcome::Failure((Status::InternalServerError, "No database connection?"))
+			};
+			if let Some(id) = pool.check_session(secret.value()).await.ok().flatten() {
+				return Outcome::Success(LoggedInAs(id))
+			} else {
+				return Outcome::Failure((Status::Unauthorized, "Secret doesn't correspond to a session"))
+			}
+		}
+		Outcome::Failure((Status::Unauthorized, "No secret available"))
+	}
 }
