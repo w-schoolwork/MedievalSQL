@@ -86,7 +86,7 @@ pub async fn try_login(
 	match login_status {
 		LoginStatus::Success(secret) => {
 			cookies.add(Cookie::new("Authorization", secret));
-			Ok(Redirect::temporary("/"))
+			Ok(Redirect::to("/"))
 		}
 		LoginStatus::BadTOTP => Err(Status::BadRequest),
 		LoginStatus::BadUser => Err(Status::Unauthorized),
@@ -148,7 +148,7 @@ pub async fn try_make_account(
 	let check = totp_secret.check_current(&form.totp_confirm).unwrap();
 
 	if !check {
-		return Ok(Redirect::temporary("."));
+		return Ok(Redirect::to("."));
 	}
 
 	let mk_acct = MakeAccount {
@@ -160,7 +160,7 @@ pub async fn try_make_account(
 	let secret = pool.register(&mk_acct).await.unwrap();
 
 	cookies.add(Cookie::new("Authorization", secret));
-	Ok(Redirect::temporary("/"))
+	Ok(Redirect::to("/"))
 }
 
 pub struct LoggedInAs(pub Uuid);
