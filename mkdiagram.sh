@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export DB_HOSTNAME=$(echo "$DATABASE_URL" | cut -d@ -f2 | cut -d/ -f1)
+export DB_HOSTNAME=${DB_HOSTNAME:-$(echo "$DATABASE_URL" | cut -d@ -f2 | cut -d/ -f1)}
 echo $DB_HOSTNAME
 export DB_IP=$(dig $DB_HOSTNAME | grep db. | tail -n1 | cut -d '	' -f 7)
 echo $DB_IP

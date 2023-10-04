@@ -4,5 +4,6 @@
       sqlx-cli
       rustup
       bacon
+      dig
     ];
   }

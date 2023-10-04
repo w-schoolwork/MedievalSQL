@@ -6,7 +6,6 @@ CREATE TABLE users (
 	totp_secret TEXT UNIQUE NOT NULL
 );
 
-
 CREATE TABLE Location (
     LocationID UUID PRIMARY KEY,
     LocationName VARCHAR(100) NOT NULL,
@@ -34,7 +33,6 @@ CREATE TABLE Competitors (
     HorseName VARCHAR(50),
     email TEXT UNIQUE NOT NULL
 );
-
 
 CREATE TABLE Rewards (
     RewardID UUID PRIMARY KEY,
