@@ -5,7 +5,8 @@ RENAME COLUMN CompetitorId TO user_id;
 ALTER TABLE Competitors
 ADD CONSTRAINT fk_competitor_is_user
 FOREIGN KEY (user_id)
-REFERENCES users(user_id);
+REFERENCES users(user_id)
+ON DELETE CASCADE;
 
 ALTER TABLE Competitors
 DROP COLUMN email;
