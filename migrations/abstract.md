@@ -7,7 +7,7 @@
 * Events
   * Events have a UUID, name, and some other flavor information.
   * An event has an "organizer", who is a user with permission to modify it.
-  * Once an event is finished, it contains the UUID of the winning player.
+  * An event has a boolean indicating whether it is finished.
 * Plays
   * Plays associate users with events as players. They contain a user ID and an event ID. Once the user finishes playing, they contain a score.
 * Deposits
@@ -15,6 +15,9 @@
   * Will probably just contain 100 points for each user.
 * Bets
   * Bets associate users with events as gamblers. They contain a user ID for the gambler, a user ID for the player they're betting on, an event ID for the event they're betting in, and a wager.
+* Winners
+  * A view, associating events with their winners.
+  * Something like `SELECT event.id as e_id, player.id as p_id, plays.score as score FROM event, plays, player WHERE event.finished AND event.id = plays.e_id AND plays.p_id = player.id AND plays.score <> NULL GROUP BY event.id, player_id ORDER BY plays.score DESC LIMIT 1;`
 * BetsOnBy
   * A view, associating events, gamblers, and players with the sum of all bets on that player for that event.
   * Something like `SELECT event.id as e_id, bet.g_id as g_id, bet.p_id as p_id, SUM(bet.amount) AS bet_amount FROM event, bet WHERE bet.e_id = event.id GROUP BY event.id, p_id`
