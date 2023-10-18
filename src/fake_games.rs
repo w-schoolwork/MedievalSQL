@@ -16,6 +16,7 @@ pub struct GameSummary {
 }
 
 impl FakeGame {
+	#[must_use]
 	pub fn new(pool: Pool) -> Self {
 		Self {
 			pool,
@@ -80,7 +81,7 @@ impl FakeGame {
 		self.pool.end_game(game).await?;
 		// Output game summary
 		let balance_after_game = self.pool.total_balance().await?;
-		let change_in_balance = (current_balance as i128) - (balance_after_game as i128);
+		let change_in_balance = i128::from(current_balance) - i128::from(balance_after_game);
 		let mut user_balances = BTreeMap::new();
 		for user in &self.users {
 			let balance = self.pool.balance_of(*user).await?;
@@ -110,8 +111,9 @@ impl FakeGame {
 
 impl Drop for FakeGame {
 	fn drop(&mut self) {
-		if !self.users.is_empty() || !self.games.is_empty() {
-			panic!("You need to call cleanup()!");
-		}
+		assert!(
+			!(!self.users.is_empty() || !self.games.is_empty()),
+			"You need to call cleanup()!"
+		);
 	}
 }

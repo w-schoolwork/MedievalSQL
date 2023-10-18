@@ -12,7 +12,7 @@ use rocket_dyn_templates::{context, Template};
 use totp_rs::{Rfc6238, Secret, TOTP};
 use uuid::Uuid;
 
-use crate::db::{self, Pool};
+use crate::db::Pool;
 
 #[must_use]
 pub fn routes() -> Vec<Route> {

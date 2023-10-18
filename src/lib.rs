@@ -2,12 +2,8 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::missing_panics_doc)]
 
-use db::Pool;
-use rocket::{fs::FileServer, Build, Rocket, State};
+use rocket::{fs::FileServer, Build, Rocket};
 use rocket_dyn_templates::Template;
-use totp_rs::TOTP;
-use uuid::Uuid;
-use www::login::MakeAccount;
 
 pub mod db;
 pub mod www;
