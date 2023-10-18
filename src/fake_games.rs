@@ -92,28 +92,28 @@ impl FakeGame {
 			user_balances,
 		})
 	}
-
-	pub async fn cleanup(&mut self) {
-		for id in &self.users {
-			if let Err(e) = self.pool.delete_user(*id).await {
-				eprintln!("Error deleting user: {e}");
-			}
-		}
-		for id in &self.games {
-			if let Err(e) = self.pool.delete_game(*id).await {
-				eprintln!("Error deleting game: {e}");
-			}
-		}
-		self.games.clear();
-		self.users.clear();
-	}
 }
 
 impl Drop for FakeGame {
 	fn drop(&mut self) {
-		assert!(
-			!(!self.users.is_empty() || !self.games.is_empty()),
-			"You need to call cleanup()!"
-		);
+		let users = self.users.clone();
+		let games = self.games.clone();
+		let pool = self.pool.clone();
+		let job = tokio::spawn(async move {
+			let pool = pool;
+			for id in &users {
+				if let Err(e) = pool.delete_user(*id).await {
+					eprintln!("Error deleting user: {e}");
+				}
+			}
+			for id in &games {
+				if let Err(e) = pool.delete_game(*id).await {
+					eprintln!("Error deleting game: {e}");
+				}
+			}
+		});
+		while !job.is_finished() {
+			std::thread::yield_now();
+		}
 	}
 }

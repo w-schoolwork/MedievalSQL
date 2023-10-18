@@ -22,11 +22,13 @@ async fn main() -> color_eyre::Result<()> {
 	let mut fake_games = FakeGame::new(pool.clone());
 	fake_games.add_users(user_amt, starting_balance).await?;
 
-	// for i in 0..game_amt {
-	// 	let current_status = fake_games.play_game().await?;
-	// 	// Do something with that
-	// }
+	for i in 0..game_amt {
+		let current_status = fake_games.play_game().await?;
+		println!(
+			"Game {i}/{game_amt}; currency in play changed by {} (should be 0).",
+			current_status.change_in_balance
+		);
+	}
 
-	fake_games.cleanup().await;
 	Ok(())
 }
