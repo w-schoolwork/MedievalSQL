@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT user_id, email, totp_secret FROM users WHERE users.email = $1",
+  "query": "SELECT user_id, totp_secret FROM users WHERE users.email = $1",
   "describe": {
     "columns": [
       {
@@ -10,11 +10,6 @@
       },
       {
         "ordinal": 1,
-        "name": "email",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 2,
         "name": "totp_secret",
         "type_info": "Text"
       }
@@ -26,9 +21,8 @@
     },
     "nullable": [
       false,
-      false,
       false
     ]
   },
-  "hash": "ded7fe481db1dd03f0890ef9fb531fdf771ab403d48706fe5ba738b9813412ad"
+  "hash": "bee7e8526220ac92e26cb727bcb1efa26d85b92315f5fb008a08ea8ab55574d4"
 }

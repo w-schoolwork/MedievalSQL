@@ -1,11 +1,10 @@
-use std::{ops::Deref, time::SystemTimeError};
+use std::time::SystemTimeError;
 
-use sqlx::{PgPool, migrate::MigrateError};
-use totp_rs::{TOTP, TotpUrlError};
-use uuid::Uuid;
-use rand::Rng;
-use base64::{Engine, engine::general_purpose::STANDARD_NO_PAD};
 use crate::www::login::{LoginAttempt, LoginStatus, MakeAccount};
+use base64::{engine::general_purpose::STANDARD_NO_PAD, Engine};
+use sqlx::{migrate::MigrateError, PgPool};
+use totp_rs::{TotpUrlError, TOTP};
+use uuid::Uuid;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -37,15 +36,20 @@ impl Pool {
 	pub async fn login(&self, attempt: &LoginAttempt) -> Result<LoginStatus, Error> {
 		struct UserInfo {
 			pub user_id: Uuid,
-			pub email: String,
 			pub totp_secret: String,
 		}
-		let Some(UserInfo {user_id, email, totp_secret}) = sqlx::query_as!(
+		let Some(UserInfo {
+			user_id,
+			totp_secret,
+		}) = sqlx::query_as!(
 			UserInfo,
-			"SELECT user_id, email, totp_secret FROM users WHERE users.email = $1",
+			"SELECT user_id, totp_secret FROM users WHERE users.email = $1",
 			attempt.email.clone()
-		).fetch_optional(&self.0).await? else {
-			return Ok(LoginStatus::BadUser)
+		)
+		.fetch_optional(&self.0)
+		.await?
+		else {
+			return Ok(LoginStatus::BadUser);
 		};
 		let totp_secret = TOTP::from_url(totp_secret)?;
 		let ok = totp_secret.check_current(&attempt.totp)?;
@@ -59,11 +63,9 @@ impl Pool {
 	async fn mk_session(&self, id: Uuid) -> Result<String, sqlx::Error> {
 		let data = (0..512).map(|_| rand::random()).collect::<Vec<u8>>();
 		let text = STANDARD_NO_PAD.encode(&data);
-		sqlx::query!(
-			"INSERT INTO session VALUES ($1, $2);",
-			id,
-			text.clone()
-		).execute(&self.0).await?;
+		sqlx::query!("INSERT INTO session VALUES ($1, $2);", id, text.clone())
+			.execute(&self.0)
+			.await?;
 		Ok(text)
 	}
 
@@ -71,42 +73,102 @@ impl Pool {
 		struct Session {
 			pub user_id: Uuid,
 		}
-		let session: Option<Session> = sqlx::query_as!(Session,
+		let session: Option<Session> = sqlx::query_as!(
+			Session,
 			"SELECT user_id FROM session
 			WHERE secret = $1",
 			secret
-		).fetch_optional(&self.0).await?;
+		)
+		.fetch_optional(&self.0)
+		.await?;
 		Ok(session.map(|s| s.user_id))
 	}
 
 	pub async fn clobber_session(&self, secret: &str) -> Result<(), sqlx::Error> {
-		sqlx::query!(
-			"DELETE FROM session WHERE secret = $1",
-			secret
-		).execute(&self.0).await?;
+		sqlx::query!("DELETE FROM session WHERE secret = $1", secret)
+			.execute(&self.0)
+			.await?;
 		Ok(())
 	}
 
 	pub async fn email_of(&self, id: Uuid) -> Result<Option<String>, Error> {
 		struct Out {
-			email: String
+			email: String,
 		}
-		let out = sqlx::query_as!(Out,
+		let out = sqlx::query_as!(
+			Out,
 			"SELECT email FROM users
 			WHERE user_id = $1",
 			id
-		).fetch_optional(&self.0).await?;
+		)
+		.fetch_optional(&self.0)
+		.await?;
 		Ok(out.map(|o| o.email))
 	}
 
-	pub async fn register(&self, account: &MakeAccount) -> Result<String, sqlx::Error> {
+	pub async fn register_user(&self, account: &MakeAccount) -> Result<String, sqlx::Error> {
 		sqlx::query!(
 			"INSERT INTO users VALUES ($1, $2, $3)",
 			account.user_id,
 			account.email,
 			account.totp_secret.get_url()
-		).execute(&self.0).await?;
+		)
+		.execute(&self.0)
+		.await?;
 		self.mk_session(account.user_id).await
+	}
+
+	pub async fn delete_user(&self, user: Uuid) -> Result<(), sqlx::Error> {
+		sqlx::query!("DELETE FROM users WHERE user_id = $1;", user)
+			.execute(&self.0)
+			.await?;
+		Ok(())
+	}
+
+	pub async fn total_balance(&self) -> Result<u64, sqlx::Error> {
+		unimplemented!()
+	}
+
+	pub async fn magic_money(&self, user: Uuid, amount: i64) -> Result<(), sqlx::Error> {
+		sqlx::query!("INSERT INTO deposit VALUES ($1, $2);", user, amount)
+			.execute(&self.0)
+			.await?;
+		Ok(())
+	}
+
+	pub async fn create_game(&self, _master: Uuid, _name: String) -> Result<Uuid, sqlx::Error> {
+		unimplemented!()
+	}
+
+	pub async fn delete_game(&self, _game: Uuid) -> Result<(), sqlx::Error> {
+		unimplemented!()
+	}
+
+	pub async fn register_for_game(&self, game: Uuid, player: Uuid) -> Result<(), sqlx::Error> {
+		self.wager_on_game(game, player, player, 10).await?;
+		unimplemented!()
+	}
+
+	pub async fn wager_on_game(
+		&self,
+		_game: Uuid,
+		_user: Uuid,
+		_winner: Uuid,
+		_amt: u64,
+	) -> Result<(), sqlx::Error> {
+		unimplemented!()
+	}
+
+	pub async fn balance_of(&self, _user: Uuid) -> Result<u64, sqlx::Error> {
+		unimplemented!()
+	}
+
+	pub async fn score_on(&self, _game: Uuid, _user: Uuid, _score: u64) -> Result<(), sqlx::Error> {
+		unimplemented!()
+	}
+
+	pub async fn end_game(&self, _game: Uuid) -> Result<(), sqlx::Error> {
+		unimplemented!()
 	}
 }
 

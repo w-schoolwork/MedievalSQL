@@ -1,20 +1,29 @@
 use rocket::{
+	async_trait,
 	form::Form,
 	get,
 	http::{Cookie, CookieJar, Status},
 	post,
+	request::{FromRequest, Outcome},
 	response::Redirect,
-	routes, FromForm, Route, State, request::{FromRequest, Outcome}, async_trait, Request,
+	routes, FromForm, Request, Route, State,
 };
 use rocket_dyn_templates::{context, Template};
 use totp_rs::{Rfc6238, Secret, TOTP};
 use uuid::Uuid;
 
-use crate::db::{Pool, self};
+use crate::db::{self, Pool};
 
 #[must_use]
 pub fn routes() -> Vec<Route> {
-	routes![challenge, make_account, try_login, try_make_account, check_logged_in, logout]
+	routes![
+		challenge,
+		make_account,
+		try_login,
+		try_make_account,
+		check_logged_in,
+		logout
+	]
 }
 
 #[get("/check")]
@@ -90,7 +99,7 @@ pub async fn try_login(
 		}
 		LoginStatus::BadTOTP => Err(Status::BadRequest),
 		LoginStatus::BadUser => Err(Status::Unauthorized),
-		LoginStatus::Whoopsie => Err(Status::InternalServerError)
+		LoginStatus::Whoopsie => Err(Status::InternalServerError),
 	}
 }
 
@@ -157,7 +166,7 @@ pub async fn try_make_account(
 		email: form.email.clone(),
 	};
 
-	let secret = pool.register(&mk_acct).await.unwrap();
+	let secret = pool.register_user(&mk_acct).await.unwrap();
 
 	cookies.add(Cookie::new("Authorization", secret));
 	Ok(Redirect::to("/"))
@@ -174,12 +183,20 @@ impl<'a> FromRequest<'a> for LoggedInAs {
 		if let Some(secret) = secret {
 			let pool: &State<Pool> = match request.guard().await {
 				Outcome::Success(p) => p,
-				_ => return Outcome::Failure((Status::InternalServerError, "No database connection?"))
+				_ => {
+					return Outcome::Failure((
+						Status::InternalServerError,
+						"No database connection?",
+					))
+				}
 			};
 			if let Some(id) = pool.check_session(secret.value()).await.ok().flatten() {
-				return Outcome::Success(LoggedInAs(id))
+				return Outcome::Success(LoggedInAs(id));
 			} else {
-				return Outcome::Failure((Status::Unauthorized, "Secret doesn't correspond to a session"))
+				return Outcome::Failure((
+					Status::Unauthorized,
+					"Secret doesn't correspond to a session",
+				));
 			}
 		}
 		Outcome::Failure((Status::Unauthorized, "No secret available"))
