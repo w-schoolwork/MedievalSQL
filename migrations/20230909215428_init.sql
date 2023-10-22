@@ -21,7 +21,7 @@ CREATE TABLE deposit (
 CREATE TABLE events (
   event_id UUID PRIMARY KEY,
   event_name VARCHAR(100) NOT NULL,
-  begins DATE NOT NULL,
+  begins TIMESTAMPTZ NOT NULL,
   flavor TEXT,
   organizer UUID,
   FOREIGN KEY (organizer)
