@@ -21,7 +21,7 @@ CREATE TABLE deposit (
 CREATE TABLE plays (
   user_id UUID,
   event_id UUID NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL,
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
   -- FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE,
   PRIMARY KEY (user_id, event_id),
   score smallint -- Does this need to be small? A player could probably score more than 32767
