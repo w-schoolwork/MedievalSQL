@@ -2,7 +2,7 @@ use std::time::SystemTimeError;
 
 use crate::www::login::{LoginAttempt, LoginStatus, MakeAccount};
 use base64::{engine::general_purpose::STANDARD_NO_PAD, Engine};
-use sqlx::{migrate::MigrateError, PgPool};
+use sqlx::{migrate::MigrateError, types::chrono::{DateTime, Local}, PgPool};
 use totp_rs::{TotpUrlError, TOTP};
 use uuid::Uuid;
 
@@ -61,7 +61,7 @@ impl Pool {
 	}
 
 	async fn mk_session(&self, id: Uuid) -> Result<String, sqlx::Error> {
-		let data = (0..512).map(|_| rand::random()).collect::<Vec<u8>>();
+		let data = (0..128).map(|_| rand::random()).collect::<Vec<u8>>();
 		let text = STANDARD_NO_PAD.encode(&data);
 		sqlx::query!("INSERT INTO session VALUES ($1, $2);", id, text.clone())
 			.execute(&self.0)
@@ -136,12 +136,32 @@ impl Pool {
 		Ok(())
 	}
 
-	pub async fn create_game(&self, _master: Uuid, _name: String) -> Result<Uuid, sqlx::Error> {
-		unimplemented!()
+	pub async fn create_game(
+		&self,
+		master: Uuid,
+		name: String,
+		flavor: String,
+		date: DateTime<Local>,
+	) -> Result<Uuid, sqlx::Error> {
+		let id = Uuid::new_v4();
+		sqlx::query!(
+			"INSERT INTO events VALUES ($1, $3, $5, $4, $2, false)",
+			id,
+			master,
+			name,
+			flavor,
+			date
+		)
+		.execute(&self.0)
+		.await?;
+		Ok(id)
 	}
 
-	pub async fn delete_game(&self, _game: Uuid) -> Result<(), sqlx::Error> {
-		unimplemented!()
+	pub async fn delete_game(&self, game: Uuid) -> Result<(), sqlx::Error> {
+		sqlx::query!("DELETE FROM events WHERE event_id = $1", game)
+			.execute(&self.0)
+			.await?;
+		Ok(())
 	}
 
 	pub async fn register_for_game(&self, game: Uuid, player: Uuid) -> Result<(), sqlx::Error> {
