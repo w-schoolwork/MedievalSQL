@@ -15,6 +15,7 @@ pub struct GameSummary {
 	pub user_balances: BTreeMap<Uuid, u64>,
 }
 
+#[allow(clippy::missing_errors_doc)]
 impl FakeGame {
 	#[must_use]
 	pub fn new(pool: Pool) -> Self {
