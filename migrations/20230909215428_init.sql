@@ -76,22 +76,26 @@ CREATE TABLE deposit (
 --);
 --
 -- CREATE TABLE Bets (
---    
+--    gamblerID
+--    gambledID
 --    Ask about this  
 --);
 --
 -- CREATE VIEW Winners AS
--- SELECT Events.eventID as e_id, plays.user_id as playerID, Plays.score as winScore
+-- SELECT Events.EventID as e_id, plays.user_id as playerID, Plays.score as winScore
 -- FROM Events, Plays
 -- WHERE *unsure about the .finished, will likely need to work with dates to check on status of event*
--- AND Events.user_id= plays.e_id AND 
+-- AND Events.user_id= plays.e_id AND plays.score <> NULL
+-- GROUP BY e_id, playerID
+-- ORDER BY winScore
+-- DESC LIMIT 1
+-- 
+--Is there supposed to be a player table? No
 --
---Is there supposed to be a player table?
---
---CREATE VIEW
---
---
---
+--CREATE VIEW BetsOnBy AS
+--SELECT Events.EventID as e_id, 
+--FROM 
+--WHERE 
 --
 --
 --
