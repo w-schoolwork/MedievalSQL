@@ -18,11 +18,22 @@ CREATE TABLE deposit (
   amt BIGINT
 );
 
+CREATE TABLE events (
+  event_id UUID PRIMARY KEY,
+  event_name VARCHAR(100) NOT NULL,
+  begins DATE NOT NULL,
+  flavor TEXT,
+  organizer UUID,
+  FOREIGN KEY (organizer)
+  REFERENCES users(user_id),
+  finished BOOLEAN NOT NULL
+);
+
 CREATE TABLE plays (
   user_id UUID NOT NULL,
   event_id UUID NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-  -- FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE,
+  FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE,
   PRIMARY KEY (user_id, event_id),
   score smallint -- Does this need to be small? A player could probably score more than 32767
   --  Possibly rename/reorganize so there's a different ID to be used in later views
@@ -59,17 +70,6 @@ CREATE TABLE bets (
 --     Village VARCHAR(50),
 --     State VARCHAR(50),
 --     Nation VARCHAR(50)
--- );
-
--- CREATE TABLE Events (
---     EventID UUID PRIMARY KEY,
---     EventName VARCHAR(100) NOT NULL,
---     EventDate DATE NOT NULL,
---     Description TEXT,
---     LocationID UUID,
---     CONSTRAINT fk_location
---         FOREIGN KEY (LocationID)
---         REFERENCES Location(LocationID)
 -- );
 
 -- CREATE TABLE Competitors (
