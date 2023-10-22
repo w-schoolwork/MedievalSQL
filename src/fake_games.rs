@@ -1,6 +1,6 @@
 use crate::{db::Pool, www::login::MakeAccount};
 use rand::{seq::SliceRandom, thread_rng, Rng};
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, ops::Deref};
 use totp_rs::TOTP;
 use uuid::Uuid;
 
@@ -116,4 +116,12 @@ impl Drop for FakeGame {
 			std::thread::yield_now();
 		}
 	}
+}
+
+impl Deref for FakeGame {
+    type Target = Pool;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pool
+    }
 }
