@@ -19,7 +19,7 @@ CREATE TABLE deposit (
 );
 
 CREATE TABLE plays (
-  user_id UUID,
+  user_id UUID NOT NULL,
   event_id UUID NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
   -- FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE,
