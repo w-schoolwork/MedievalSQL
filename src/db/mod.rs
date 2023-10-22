@@ -61,7 +61,7 @@ impl Pool {
 	}
 
 	async fn mk_session(&self, id: Uuid) -> Result<String, sqlx::Error> {
-		let data = (0..512).map(|_| rand::random()).collect::<Vec<u8>>();
+		let data = (0..128).map(|_| rand::random()).collect::<Vec<u8>>();
 		let text = STANDARD_NO_PAD.encode(&data);
 		sqlx::query!("INSERT INTO session VALUES ($1, $2);", id, text.clone())
 			.execute(&self.0)
