@@ -1,6 +1,7 @@
 use crate::{db::Pool, www::login::MakeAccount};
 use rand::{seq::SliceRandom, thread_rng, Rng};
-use std::{collections::BTreeMap, ops::Deref};
+use sqlx::types::chrono::Local;
+use std::{collections::BTreeMap, ops::Deref, time::Duration};
 use totp_rs::TOTP;
 use uuid::Uuid;
 
@@ -63,7 +64,12 @@ impl FakeGame {
 		// Set up the game
 		let game = self
 			.pool
-			.create_game(*master, String::from("Fake Game"))
+			.create_game(
+				*master,
+				String::from("Fake Game"),
+				String::new(),
+				Local::now() - Duration::from_secs(30),
+			)
 			.await?;
 		self.games.push(game);
 		for player in &players {
@@ -120,9 +126,9 @@ impl Drop for FakeGame {
 }
 
 impl Deref for FakeGame {
-    type Target = Pool;
+	type Target = Pool;
 
-    fn deref(&self) -> &Self::Target {
-        &self.pool
-    }
+	fn deref(&self) -> &Self::Target {
+		&self.pool
+	}
 }
