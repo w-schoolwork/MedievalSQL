@@ -13,30 +13,24 @@ CREATE TABLE session (
 );
 
 CREATE TABLE deposit (
-    user_id UUID NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    amt BIGINT
-)
+  user_id UUID NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+  amt BIGINT
+);
 
--- CREATE TABLE Plays (
---    user_id UUID
---    EventID UUID
---    FOREIGN KEY (user_id)
---    FOREIGN KEY (EventID)
---    PRIMARY KEY (user_id, EventID)
---    score smallint
---    Possibly rename/reorganize so there's a different ID to be used in later views
---)
---
--- CREATE TABLE Deposits (
---    user_id UUID
---    points tinyint
---);
---
--- CREATE TABLE Bets (
---    
---    Ask about this  
---);
+CREATE TABLE plays (
+  user_id UUID,
+  event_id UUID NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL,
+  -- FOREIGN KEY (evebt_id) REFERENCES events(event_id) ON DELETE CASCADE,
+  PRIMARY KEY (user_id, event_id),
+  score smallint
+  --  Possibly rename/reorganize so there's a different ID to be used in later views
+);
+
+CREATE TABLE bets (
+  -- Ask about this  
+);
 --
 -- CREATE VIEW Winners AS
 -- SELECT Events.eventID as e_id, plays.user_id as playerID, Plays.score as winScore
