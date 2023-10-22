@@ -59,3 +59,28 @@ CREATE TABLE deposit (
 --         FOREIGN KEY (EventID)
 --         REFERENCES Events(EventID)
 -- );
+
+-- CREATE TABLE Plays (
+--    user_id UUID
+--    EventID UUID
+--    FOREIGN KEY (user_id)
+--    FOREIGN KEY (EventID)
+--    PRIMARY KEY (user_id, EventID)
+--    score smallint
+--    Possibly rename/reorganize so there's a different ID to be used in later views
+--)
+--
+-- CREATE TABLE Deposits (
+--    user_id UUID
+--    points tinyint
+--);
+--
+-- CREATE TABLE Bets (
+--    
+--    Ask about this  
+--);
+--
+-- CREATE VIEW Winners AS
+-- SELECT eventID as e_id, 
+-- FROM
+-- WHERE 
