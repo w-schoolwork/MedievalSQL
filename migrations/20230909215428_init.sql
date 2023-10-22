@@ -81,6 +81,22 @@ CREATE TABLE deposit (
 --);
 --
 -- CREATE VIEW Winners AS
--- SELECT eventID as e_id, 
--- FROM
--- WHERE 
+-- SELECT Events.eventID as e_id, plays.user_id as playerID, Plays.score as winScore
+-- FROM Events, Plays
+-- WHERE *unsure about the .finished, will likely need to work with dates to check on status of event*
+-- AND Events.user_id= plays.e_id AND 
+--
+--Is there supposed to be a player table?
+--
+--CREATE VIEW
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
