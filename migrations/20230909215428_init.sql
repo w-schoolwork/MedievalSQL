@@ -44,26 +44,13 @@ CREATE TABLE bets (
 );
 --
 -- CREATE VIEW Winners AS
--- SELECT Events.eventID as e_id, plays.user_id as playerID, Plays.score as winScore
+-- SELECT events.event_id as e_id, plays.user_id as playerID, Plays.score as winScore
 -- FROM Events, Plays
 -- WHERE *unsure about the .finished, will likely need to work with dates to check on status of event*
 -- AND Events.user_id= plays.e_id AND 
 --
 --Is there supposed to be a player table?
 --
---CREATE VIEW
---
---
---
---
---
---
---
---
---
---
---
-
 -- CREATE TABLE Location (
 --     LocationID UUID PRIMARY KEY,
 --     LocationName VARCHAR(100) NOT NULL,
@@ -101,27 +88,49 @@ CREATE TABLE bets (
 --);
 --
 -- CREATE TABLE Bets (
---    gamblerID
---    gambledID
---    Ask about this  
+--    gamblerID (userID)
+--    gambledID (competitor)
+--    Amount int
+--    event_id UUID
+--
+--    Ask about this
 --);
 --
 -- CREATE VIEW Winners AS
--- SELECT Events.EventID as e_id, plays.user_id as playerID, Plays.score as winScore
--- FROM Events, Plays
+-- SELECT events.event_id as e_id, plays.user_id as playerID, Plays.score as winScore
+-- FROM events, Plays
 -- WHERE *unsure about the .finished, will likely need to work with dates to check on status of event*
--- AND Events.user_id= plays.e_id AND plays.score <> NULL
--- GROUP BY e_id, playerID
+-- AND event.user_id= plays.e_id AND plays.score <> NULL
+-- GROUP    BY e_id, playerID
 -- ORDER BY winScore
 -- DESC LIMIT 1
 -- 
 --Is there supposed to be a player table? No
 --
 --CREATE VIEW BetsOnBy AS
---SELECT Events.EventID as e_id, 
---FROM 
---WHERE 
+--SELECT events.event_d as e_id, Bets.gamblerID as g_id, Bets.gambledID as p_id, SUM(Bets.Amount) as bet_amount 
+--FROM events, Bets
+--WHERE events.event_id = Bets.event_id
+--GROUP BY events.event_id, 
 --
+--CREATE VIEW BetsON AS
+--SELECT e_id, p_id, bet_amount
+--FROM BetsOnBy
+--GROUP BY e_id, p_id
+--
+--CREATE VIEW Pool AS
+--SELECT e_id, bet_amount
+--FROM BetsOn
+--GROUP BY e_id
+--
+--CREATE VIEW Shares AS
+--SELECT BetsOnBy.g_id, (BetsOnBy.bet_amount / BetsOn.bet_amount)
+--FROM BetsOnBy, BetsOn
+--WHERE BetsOnBy.e_id = BetsOn.e_id AND BetsOnBy.p_id = BetsOn.p_id
+--
+--CREATE VIEW Winnings AS 
+--SELECT
+--FROM
 --
 --
 --
