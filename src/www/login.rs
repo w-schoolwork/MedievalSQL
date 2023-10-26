@@ -191,12 +191,11 @@ impl<'a> FromRequest<'a> for LoggedInAs {
 			};
 			if let Some(id) = pool.check_session(secret.value()).await.ok().flatten() {
 				return Outcome::Success(LoggedInAs(id));
-			} else {
-				return Outcome::Failure((
-					Status::Unauthorized,
-					"Secret doesn't correspond to a session",
-				));
 			}
+			return Outcome::Failure((
+				Status::Unauthorized,
+				"Secret doesn't correspond to a session",
+			));
 		}
 		Outcome::Failure((Status::Unauthorized, "No secret available"))
 	}
