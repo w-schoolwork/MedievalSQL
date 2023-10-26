@@ -2,7 +2,11 @@ use std::time::SystemTimeError;
 
 use crate::www::login::{LoginAttempt, LoginStatus, MakeAccount};
 use base64::{engine::general_purpose::STANDARD_NO_PAD, Engine};
-use sqlx::{migrate::MigrateError, types::chrono::{DateTime, Local}, PgPool};
+use sqlx::{
+	migrate::MigrateError,
+	types::chrono::{DateTime, Local},
+	PgPool,
+};
 use totp_rs::{TotpUrlError, TOTP};
 use uuid::Uuid;
 
@@ -125,7 +129,7 @@ impl Pool {
 		Ok(())
 	}
 
-	pub async fn total_balance(&self) -> Result<u64, sqlx::Error> {
+	pub async fn total_balance(&self) -> Result<i64, sqlx::Error> {
 		unimplemented!()
 	}
 
@@ -166,29 +170,55 @@ impl Pool {
 
 	pub async fn register_for_game(&self, game: Uuid, player: Uuid) -> Result<(), sqlx::Error> {
 		self.wager_on_game(game, player, player, 10).await?;
-		unimplemented!()
+		sqlx::query!("INSERT INTO plays VALUES ($1, $2, NULL)", player, game)
+			.execute(&self.0)
+			.await?;
+		Ok(())
 	}
 
 	pub async fn wager_on_game(
 		&self,
-		_game: Uuid,
-		_user: Uuid,
-		_winner: Uuid,
-		_amt: u64,
+		game: Uuid,
+		user: Uuid,
+		winner: Uuid,
+		amt: i64,
 	) -> Result<(), sqlx::Error> {
+		sqlx::query!(
+			"INSERT INTO bets VALUES ($2, $3, $1, $4)",
+			game,
+			user,
+			winner,
+			amt
+		)
+		.execute(&self.0)
+		.await?;
+		Ok(())
+	}
+
+	pub async fn balance_of(&self, _user: Uuid) -> Result<i64, sqlx::Error> {
 		unimplemented!()
 	}
 
-	pub async fn balance_of(&self, _user: Uuid) -> Result<u64, sqlx::Error> {
-		unimplemented!()
+	pub async fn score_on(&self, game: Uuid, user: Uuid, score: i64) -> Result<(), sqlx::Error> {
+		sqlx::query!(
+			"UPDATE plays SET score = $1 WHERE event_id = $2 AND user_id = $3",
+			score,
+			game,
+			user
+		)
+		.fetch_one(&self.0)
+		.await?;
+		Ok(())
 	}
 
-	pub async fn score_on(&self, _game: Uuid, _user: Uuid, _score: u64) -> Result<(), sqlx::Error> {
-		unimplemented!()
-	}
-
-	pub async fn end_game(&self, _game: Uuid) -> Result<(), sqlx::Error> {
-		unimplemented!()
+	pub async fn end_game(&self, game: Uuid) -> Result<(), sqlx::Error> {
+		sqlx::query!(
+			"UPDATE events SET finished = true WHERE event_id = $1",
+			game
+		)
+		.execute(&self.0)
+		.await?;
+		Ok(())
 	}
 }
 

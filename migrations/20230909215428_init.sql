@@ -35,12 +35,18 @@ CREATE TABLE plays (
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
   FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE,
   PRIMARY KEY (user_id, event_id),
-  score smallint -- Does this need to be small? A player could probably score more than 32767
+  score bigint
   --  Possibly rename/reorganize so there's a different ID to be used in later views
 );
 
 CREATE TABLE bets (
-  -- Ask about this  
+  gambler UUID NOT NULL,
+  player UUID NOT NULL,
+  event_id UUID NOT NULL,
+  amount BIGINT NOT NULL,
+  FOREIGN KEY(gambler) REFERENCES users(user_id),
+  FOREIGN KEY(player) REFERENCES users(user_id),
+  FOREIGN KEY(event_id) REFERENCES events(event_id)
 );
 --
 -- CREATE VIEW Winners AS

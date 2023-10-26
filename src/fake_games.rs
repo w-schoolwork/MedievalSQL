@@ -13,7 +13,7 @@ pub struct FakeGame {
 
 pub struct GameSummary {
 	pub change_in_balance: i128,
-	pub user_balances: BTreeMap<Uuid, u64>,
+	pub user_balances: BTreeMap<Uuid, i64>,
 }
 
 #[allow(clippy::missing_errors_doc)]

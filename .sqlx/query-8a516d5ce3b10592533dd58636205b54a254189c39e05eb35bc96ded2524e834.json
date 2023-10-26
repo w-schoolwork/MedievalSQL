@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE plays SET score = $1 WHERE event_id = $2 AND user_id = $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8a516d5ce3b10592533dd58636205b54a254189c39e05eb35bc96ded2524e834"
+}
