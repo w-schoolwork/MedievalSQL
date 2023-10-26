@@ -9,14 +9,15 @@ Medieval SQL Project
 <hr>
 
 {% if user %}
-<p><i>Hello, {{ user.name }}.</i></p>
-{% if user.admin %}
-<p><a href="/admin">Thou doth wish to organize</a></p>
-{% endif %}
+<p><i>Hello, {{ user.email }}.</i></p>
+
+<p><a href="/login/logout">Take your leave</a></p>
 
 {% else %}
 <p><a href="/login">Speak with the gateman (login)</a> or <a href="/login/new">Speak with the recordkeeper
 		(register)</a></p>
 
 {% endif %}
+
+<a href="/practice">Practice your art</a>
 {% endblock content %}

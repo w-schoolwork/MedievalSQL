@@ -39,17 +39,16 @@ pub async fn check_logged_in(logged_in: LoggedInAs, pool: &State<Pool>) -> Strin
 
 #[get("/logout")]
 #[must_use]
-pub async fn logout(pool: &State<Pool>, cookies: &CookieJar<'_>) -> &'static str {
+pub async fn logout(pool: &State<Pool>, cookies: &CookieJar<'_>) -> Redirect {
 	if let Some(cookie) = cookies.get("Authorization") {
 		let secret = cookie.value().to_string();
 		cookies.remove(cookie.clone());
 		if let Err(e) = pool.clobber_session(&secret).await {
 			eprintln!("{e}");
-			return "Something happened?";
 		}
-		return "OK";
+		return Redirect::temporary("/");
 	};
-	"You don't have a login cookie."
+	Redirect::temporary("/login")
 }
 
 #[get("/")]
