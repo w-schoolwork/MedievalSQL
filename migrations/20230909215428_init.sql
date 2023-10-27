@@ -78,14 +78,10 @@ SELECT BetsOnBy.g_id as g_id, BetsOnBy.e_id as e_id, BetsOnBy.p_id as p_id, (Bet
 FROM BetsOnBy, BetsOn
 WHERE BetsOnBy.e_id = BetsOn.e_id
 AND BetsOnBy.p_id = BetsOn.p_id;
---
+
+-- Winnings should be calculated by multiplying a gambler's share in the pool for each of the events they gambled on successfully with the size of the pool for that event
 --CREATE VIEW Winnings AS 
 --SELECT
 --FROM
---
---
---
---
---
---
---
+
+-- Balances should be calculated by summing up a user's deposits and winnings, and subtracting out their bets.
