@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE events\n\t\t\tSET finished = true\n\t\t\tWHERE event_id = $1;",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "65c2c2fb82d657d677a822c36bdd41ac558dc745141a6600705fa0028ef176f7"
+}

@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "REFRESH MATERIALIZED VIEW winners;",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "34eadafaaaa8ee3db92e0afec6e2fc9e689118d88c04a4e2c6338adda0347265"
+}

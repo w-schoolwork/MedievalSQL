@@ -44,7 +44,7 @@ impl FakeGame {
 		Ok(())
 	}
 
-	pub async fn play_game(&mut self) -> Result<GameSummary, sqlx::Error> {
+	pub async fn play_game(&mut self) -> Result<GameSummary, crate::db::Error> {
 		let mut rng = thread_rng();
 		let current_balance = self.pool.total_balance().await?;
 		// Choose which players will play and which will gamble

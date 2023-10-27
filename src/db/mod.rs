@@ -24,6 +24,8 @@ pub enum Error {
 	ClockError(#[from] SystemTimeError),
 	#[error("Problem decoding base64")]
 	Base64DecError(#[from] base64::DecodeError),
+	#[error("Game is already finished")]
+	GameAlreadyOver,
 }
 
 #[derive(Clone)]
@@ -168,12 +170,21 @@ impl Pool {
 		Ok(())
 	}
 
-	pub async fn register_for_game(&self, game: Uuid, player: Uuid) -> Result<(), sqlx::Error> {
+	pub async fn register_for_game(&self, game: Uuid, player: Uuid) -> Result<(), Error> {
 		self.wager_on_game(game, player, player, 10).await?;
 		sqlx::query!("INSERT INTO plays VALUES ($1, $2, NULL)", player, game)
 			.execute(&self.0)
 			.await?;
 		Ok(())
+	}
+
+	pub async fn game_is_finished(&self, game: Uuid) -> Result<bool, Error> {
+		Ok(
+			sqlx::query!("SELECT finished FROM events WHERE event_id = $1", game)
+				.fetch_one(&self.0)
+				.await?
+				.finished,
+		)
 	}
 
 	pub async fn wager_on_game(
@@ -182,7 +193,10 @@ impl Pool {
 		user: Uuid,
 		winner: Uuid,
 		amt: i64,
-	) -> Result<(), sqlx::Error> {
+	) -> Result<(), Error> {
+		if self.game_is_finished(game).await? {
+			return Err(Error::GameAlreadyOver);
+		}
 		sqlx::query!(
 			"INSERT INTO bets VALUES ($2, $3, $1, $4)",
 			game,
@@ -199,7 +213,10 @@ impl Pool {
 		unimplemented!()
 	}
 
-	pub async fn score_on(&self, game: Uuid, user: Uuid, score: i64) -> Result<(), sqlx::Error> {
+	pub async fn score_on(&self, game: Uuid, user: Uuid, score: i64) -> Result<(), Error> {
+		if self.game_is_finished(game).await? {
+			return Err(Error::GameAlreadyOver);
+		}
 		sqlx::query!(
 			"UPDATE plays SET score = $1 WHERE event_id = $2 AND user_id = $3",
 			score,
@@ -211,13 +228,21 @@ impl Pool {
 		Ok(())
 	}
 
-	pub async fn end_game(&self, game: Uuid) -> Result<(), sqlx::Error> {
+	pub async fn end_game(&self, game: Uuid) -> Result<(), Error> {
+		if self.game_is_finished(game).await? {
+			return Err(Error::GameAlreadyOver);
+		}
 		sqlx::query!(
-			"UPDATE events SET finished = true WHERE event_id = $1",
+			"UPDATE events
+			SET finished = true
+			WHERE event_id = $1;",
 			game
 		)
 		.execute(&self.0)
 		.await?;
+		sqlx::query!("REFRESH MATERIALIZED VIEW winners;")
+			.execute(&self.0)
+			.await?;
 		Ok(())
 	}
 }
