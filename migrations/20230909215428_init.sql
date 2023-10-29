@@ -88,3 +88,11 @@ AND BetsOnBy.p_id = BetsOn.p_id;
 --FROM
 
 -- Balances should be calculated by summing up a user's deposits and winnings, and subtracting out their bets.
+
+CREATE VIEW Balances AS
+SELECT u.user_id AS gambler_id, COALESCE(SUM(d.amt), 0) AS total_deposits, COALESCE(SUM(b.amount), 0) AS total_bets, COALESCE(SUM(w.winnings), 0) AS total_winnings
+FROM users u
+LEFT JOIN deposit d ON u.user_id = d.user_id
+LEFT JOIN bets b ON u.user_id = b.gambler
+LEFT JOIN Winnings w ON u.user_id = w.gambler_id
+GROUP BY u.user_id;
