@@ -83,10 +83,10 @@ WHERE BetsOnBy.e_id = BetsOn.e_id
 AND BetsOnBy.p_id = BetsOn.p_id;
 
 -- Winnings should be calculated by multiplying a gambler's share in the pool for each of the events they gambled on successfully with the size of the pool for that event
---CREATE VIEW Winnings AS 
---SELECT (Shares.share * bet_amount)
---FROM Shares, Pool
---Where BetsOn.e_id = Shares.e_id
+CREATE VIEW Winnings AS 
+SELECT (Shares.share * bet_amount)
+FROM Shares, Pool
+Where BetsOn.e_id = Shares.e_id AND BetsOn.e_id = winners.event_id AND winners.user_id = BetsOn.p_id
 
 -- Balances should be calculated by summing up a user's deposits and winnings, and subtracting out their bets.
 
