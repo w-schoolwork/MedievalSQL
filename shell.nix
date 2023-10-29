@@ -9,5 +9,6 @@
       # pkg-config
       # openssl
       # postgresql
+      bzip2
     ];
   }
