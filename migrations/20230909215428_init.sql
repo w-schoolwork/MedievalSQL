@@ -74,7 +74,10 @@ FROM BetsOn
 GROUP BY e_id;
 
 CREATE VIEW Shares AS
-SELECT BetsOnBy.g_id as g_id, BetsOnBy.e_id as e_id, BetsOnBy.p_id as p_id, (BetsOnBy.bet_amount / BetsOn.bet_amount) as share
+SELECT BetsOnBy.g_id as g_id, BetsOnBy.e_id as e_id, BetsOnBy.p_id as p_id,
+(
+  (BetsOnBy.bet_amount as NUMERIC(200,100)) / (BetsOn.bet_amount as NUMERIC(200,100))
+) as share
 FROM BetsOnBy, BetsOn
 WHERE BetsOnBy.e_id = BetsOn.e_id
 AND BetsOnBy.p_id = BetsOn.p_id;
