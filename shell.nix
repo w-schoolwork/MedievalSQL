@@ -5,9 +5,10 @@
       rustup
       bacon
       dig
-      gcc
-      pkg-config
-      openssl
-      postgresql
+      # gcc
+      # pkg-config
+      # openssl
+      # postgresql
+      bzip2
     ];
   }
