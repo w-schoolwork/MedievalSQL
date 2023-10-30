@@ -25,7 +25,8 @@ CREATE TABLE events (
   flavor TEXT,
   organizer UUID,
   FOREIGN KEY (organizer)
-  REFERENCES users(user_id),
+  REFERENCES users(user_id)
+  ON DELETE SET NULL,
   finished BOOLEAN NOT NULL
 );
 
@@ -44,9 +45,9 @@ CREATE TABLE bets (
   player UUID NOT NULL,
   event_id UUID NOT NULL,
   amount BIGINT NOT NULL,
-  FOREIGN KEY(gambler) REFERENCES users(user_id),
-  FOREIGN KEY(player) REFERENCES users(user_id),
-  FOREIGN KEY(event_id) REFERENCES events(event_id)
+  FOREIGN KEY(gambler) REFERENCES users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY(player) REFERENCES users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY(event_id) REFERENCES events(event_id) ON DELETE CASCADE
 );
 
 CREATE MATERIALIZED VIEW winners AS
@@ -84,11 +85,11 @@ WHERE BetsOnBy.e_id = BetsOn.e_id
 
 -- Winnings should be calculated by multiplying a gambler's share in the pool for each of the events they gambled on successfully with the size of the pool for that event
 CREATE VIEW Winnings AS 
-SELECT (Shares.share * bet_amount)
-FROM Shares, Pool
-WHERE BetsOn.e_id = Shares.e_id
-  AND BetsOn.e_id = winners.event_id
-  AND winners.user_id = BetsOn.p_id;
+SELECT Shares.g_id as g_id, (Shares.share * Pool.bet_amount) as winnings
+FROM Shares, Pool, Winners
+WHERE Shares.e_id = winners.event_id
+  AND Shares.p_id = winners.user_id
+  AND Shares.e_id = Pool.e_id;
 
 -- Balances should be calculated by summing up a user's deposits and winnings, and subtracting out their bets.
 
@@ -96,9 +97,14 @@ CREATE VIEW Balances AS
 SELECT u.user_id AS gambler_id,
   COALESCE(SUM(d.amt), 0) AS total_deposits,
   COALESCE(SUM(b.amount), 0) AS total_bets,
-  COALESCE(SUM(w.winnings), 0) AS total_winnings
+  COALESCE(SUM(w.winnings), 0) AS total_winnings,
+  (
+    COALESCE(SUM(d.amt), 0)
+    + COALESCE(SUM(w.winnings), 0)
+    - COALESCE(SUM(b.amount), 0)
+  ) AS balance
 FROM users u
 LEFT JOIN deposit d ON u.user_id = d.user_id
 LEFT JOIN bets b ON u.user_id = b.gambler
-LEFT JOIN Winnings w ON u.user_id = w.gambler_id
+LEFT JOIN Winnings w ON u.user_id = w.g_id
 GROUP BY u.user_id;
