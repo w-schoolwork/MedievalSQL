@@ -1,3 +1,5 @@
+use std::io::stdin;
+
 use clap::Parser;
 use medieval_sql::{db::Pool, fake_games::FakeGame};
 
@@ -28,7 +30,12 @@ async fn main() -> color_eyre::Result<()> {
 			"Game {i}/{game_amt}; currency in play changed by {} (should be 0).",
 			current_status.change_in_balance
 		);
+		println!("Look at the database, then press enter to continue.");
+		stdin().lines().next();
 	}
+
+	println!("Look at the database, then press enter to clean up.");
+	stdin().lines().next();
 
 	Ok(())
 }

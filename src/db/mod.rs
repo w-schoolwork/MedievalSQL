@@ -4,7 +4,10 @@ use crate::www::login::{LoginAttempt, LoginStatus, MakeAccount};
 use base64::{engine::general_purpose::STANDARD_NO_PAD, Engine};
 use sqlx::{
 	migrate::MigrateError,
-	types::chrono::{DateTime, Local},
+	types::{
+		chrono::{DateTime, Local},
+		BigDecimal,
+	},
 	PgPool,
 };
 use totp_rs::{TotpUrlError, TOTP};
@@ -131,11 +134,17 @@ impl Pool {
 		Ok(())
 	}
 
-	pub async fn total_balance(&self) -> Result<i64, sqlx::Error> {
-		unimplemented!()
+	pub async fn total_balance(&self) -> Result<BigDecimal, sqlx::Error> {
+		Ok(
+			sqlx::query!("SELECT COALESCE(SUM(balance), 0) as balance FROM Balances")
+				.fetch_one(&self.0)
+				.await?
+				.balance
+				.unwrap_or(BigDecimal::from(0)),
+		)
 	}
 
-	pub async fn magic_money(&self, user: Uuid, amount: i64) -> Result<(), sqlx::Error> {
+	pub async fn magic_money(&self, user: Uuid, amount: BigDecimal) -> Result<(), sqlx::Error> {
 		sqlx::query!("INSERT INTO deposit VALUES ($1, $2);", user, amount)
 			.execute(&self.0)
 			.await?;
@@ -171,7 +180,7 @@ impl Pool {
 	}
 
 	pub async fn register_for_game(&self, game: Uuid, player: Uuid) -> Result<(), Error> {
-		self.wager_on_game(game, player, player, 10).await?;
+		self.wager_on_game(game, player, player, BigDecimal::from(10)).await?;
 		sqlx::query!("INSERT INTO plays VALUES ($1, $2, NULL)", player, game)
 			.execute(&self.0)
 			.await?;
@@ -192,7 +201,7 @@ impl Pool {
 		game: Uuid,
 		user: Uuid,
 		winner: Uuid,
-		amt: i64,
+		amt: BigDecimal,
 	) -> Result<(), Error> {
 		if self.game_is_finished(game).await? {
 			return Err(Error::GameAlreadyOver);
@@ -209,8 +218,14 @@ impl Pool {
 		Ok(())
 	}
 
-	pub async fn balance_of(&self, _user: Uuid) -> Result<i64, sqlx::Error> {
-		unimplemented!()
+	pub async fn balance_of(&self, user: Uuid) -> Result<BigDecimal, sqlx::Error> {
+		Ok(
+			sqlx::query!("SELECT balance FROM Balances WHERE gambler_id = $1", user)
+				.fetch_one(&self.0)
+				.await?
+				.balance
+				.unwrap_or(BigDecimal::from(0)),
+		)
 	}
 
 	pub async fn score_on(&self, game: Uuid, user: Uuid, score: i64) -> Result<(), Error> {
@@ -223,7 +238,7 @@ impl Pool {
 			game,
 			user
 		)
-		.fetch_one(&self.0)
+		.execute(&self.0)
 		.await?;
 		Ok(())
 	}

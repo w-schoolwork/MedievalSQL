@@ -15,7 +15,7 @@ CREATE TABLE session (
 CREATE TABLE deposit (
   user_id UUID NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-  amt BIGINT
+  amt NUMERIC(100,50)
 );
 
 CREATE TABLE events (
@@ -44,7 +44,7 @@ CREATE TABLE bets (
   gambler UUID NOT NULL,
   player UUID NOT NULL,
   event_id UUID NOT NULL,
-  amount BIGINT NOT NULL,
+  amount NUMERIC(100,50) NOT NULL,
   FOREIGN KEY(gambler) REFERENCES users(user_id) ON DELETE CASCADE,
   FOREIGN KEY(player) REFERENCES users(user_id) ON DELETE CASCADE,
   FOREIGN KEY(event_id) REFERENCES events(event_id) ON DELETE CASCADE
@@ -55,44 +55,49 @@ SELECT events.event_id, plays.user_id, plays.score
 FROM events, plays
 WHERE events.finished = true
   AND events.event_id = plays.event_id
-  AND plays.score <> NULL
+  AND plays.score IS NOT NULL
   AND plays.score = (SELECT MAX(score) FROM plays WHERE plays.event_id = events.event_id);
 
 CREATE VIEW BetsOnBy AS
-SELECT events.event_id as e_id, bets.gambler as g_id, bets.player as p_id, SUM(bets.amount) as bet_amount 
-FROM events, bets
-WHERE events.event_id = bets.event_id
+SELECT bets.event_id as e_id,
+  bets.gambler as g_id,
+  bets.player as p_id,
+  SUM(bets.amount) as bet_amount 
+FROM bets
 GROUP BY e_id, g_id, p_id;
 
 CREATE VIEW BetsOn AS
-SELECT e_id, p_id, SUM(bet_amount) as bet_amount
-FROM BetsOnBy
+SELECT bets.event_id as e_id,
+  bets.player as p_id,
+  SUM(bets.amount) as bet_amount
+FROM bets
 GROUP BY e_id, p_id;
 
 CREATE VIEW Pool AS
-SELECT e_id, SUM(bet_amount) as bet_amount
-FROM BetsOn
-GROUP BY e_id;
+SELECT bets.event_id as e_id, SUM(amount) as bet_amount
+FROM bets
+GROUP BY bets.event_id;
 
 CREATE VIEW Shares AS
-SELECT BetsOnBy.g_id as g_id, BetsOnBy.e_id as e_id, BetsOnBy.p_id as p_id,
-(
-  CAST(BetsOnBy.bet_amount as NUMERIC(200,100)) / CAST(BetsOn.bet_amount as NUMERIC(200,100))
-) as share
+SELECT BetsOnBy.g_id as g_id,
+  BetsOnBy.e_id as e_id,
+  BetsOnBy.p_id as p_id,
+  (BetsOnBy.bet_amount / BetsOn.bet_amount) as share
 FROM BetsOnBy, BetsOn
 WHERE BetsOnBy.e_id = BetsOn.e_id
   AND BetsOnBy.p_id = BetsOn.p_id;
 
 -- Winnings should be calculated by multiplying a gambler's share in the pool for each of the events they gambled on successfully with the size of the pool for that event
 CREATE VIEW Winnings AS 
-SELECT Shares.g_id as g_id, (Shares.share * Pool.bet_amount) as winnings
+SELECT Shares.g_id as g_id,
+  Shares.e_id as e_id,
+  (Shares.share * Pool.bet_amount) as winnings
 FROM Shares, Pool, Winners
 WHERE Shares.e_id = winners.event_id
-  AND Shares.p_id = winners.user_id
-  AND Shares.e_id = Pool.e_id;
+  AND Shares.e_id = Pool.e_id
+  AND Shares.p_id = winners.user_id;
 
 -- Balances should be calculated by summing up a user's deposits and winnings, and subtracting out their bets.
-
 CREATE VIEW Balances AS
 SELECT u.user_id AS gambler_id,
   COALESCE(SUM(d.amt), 0) AS total_deposits,
