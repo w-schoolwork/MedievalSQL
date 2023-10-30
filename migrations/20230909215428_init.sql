@@ -53,9 +53,9 @@ CREATE MATERIALIZED VIEW winners AS
 SELECT events.event_id, plays.user_id, plays.score
 FROM events, plays
 WHERE events.finished = true
-AND events.event_id = plays.event_id
-AND plays.score <> NULL
-AND plays.score = (SELECT MAX(score) FROM plays WHERE plays.event_id = events.event_id);
+  AND events.event_id = plays.event_id
+  AND plays.score <> NULL
+  AND plays.score = (SELECT MAX(score) FROM plays WHERE plays.event_id = events.event_id);
 
 CREATE VIEW BetsOnBy AS
 SELECT events.event_id as e_id, bets.gambler as g_id, bets.player as p_id, SUM(bets.amount) as bet_amount 
@@ -80,18 +80,23 @@ SELECT BetsOnBy.g_id as g_id, BetsOnBy.e_id as e_id, BetsOnBy.p_id as p_id,
 ) as share
 FROM BetsOnBy, BetsOn
 WHERE BetsOnBy.e_id = BetsOn.e_id
-AND BetsOnBy.p_id = BetsOn.p_id;
+  AND BetsOnBy.p_id = BetsOn.p_id;
 
 -- Winnings should be calculated by multiplying a gambler's share in the pool for each of the events they gambled on successfully with the size of the pool for that event
 CREATE VIEW Winnings AS 
 SELECT (Shares.share * bet_amount)
 FROM Shares, Pool
-Where BetsOn.e_id = Shares.e_id AND BetsOn.e_id = winners.event_id AND winners.user_id = BetsOn.p_id
+WHERE BetsOn.e_id = Shares.e_id
+  AND BetsOn.e_id = winners.event_id
+  AND winners.user_id = BetsOn.p_id;
 
 -- Balances should be calculated by summing up a user's deposits and winnings, and subtracting out their bets.
 
 CREATE VIEW Balances AS
-SELECT u.user_id AS gambler_id, COALESCE(SUM(d.amt), 0) AS total_deposits, COALESCE(SUM(b.amount), 0) AS total_bets, COALESCE(SUM(w.winnings), 0) AS total_winnings
+SELECT u.user_id AS gambler_id,
+  COALESCE(SUM(d.amt), 0) AS total_deposits,
+  COALESCE(SUM(b.amount), 0) AS total_bets,
+  COALESCE(SUM(w.winnings), 0) AS total_winnings
 FROM users u
 LEFT JOIN deposit d ON u.user_id = d.user_id
 LEFT JOIN bets b ON u.user_id = b.gambler
