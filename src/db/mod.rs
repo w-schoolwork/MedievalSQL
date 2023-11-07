@@ -137,9 +137,9 @@ impl Pool {
 	pub async fn total_balance(&self) -> Result<BigDecimal, sqlx::Error> {
 		Ok(
 			sqlx::query!("SELECT COALESCE(SUM(balance), 0) as balance FROM Balances")
-				.fetch_one(&self.0)
+				.fetch_optional(&self.0)
 				.await?
-				.balance
+				.and_then(|b| b.balance)
 				.unwrap_or(BigDecimal::from(0)),
 		)
 	}
@@ -180,7 +180,8 @@ impl Pool {
 	}
 
 	pub async fn register_for_game(&self, game: Uuid, player: Uuid) -> Result<(), Error> {
-		self.wager_on_game(game, player, player, BigDecimal::from(10)).await?;
+		self.wager_on_game(game, player, player, BigDecimal::from(10))
+			.await?;
 		sqlx::query!("INSERT INTO plays VALUES ($1, $2, NULL)", player, game)
 			.execute(&self.0)
 			.await?;
@@ -206,6 +207,9 @@ impl Pool {
 		if self.game_is_finished(game).await? {
 			return Err(Error::GameAlreadyOver);
 		}
+		let amt = amt
+			.min(self.balance_of(user).await?)
+			.max(BigDecimal::from(0));
 		sqlx::query!(
 			"INSERT INTO bets VALUES ($2, $3, $1, $4)",
 			game,
@@ -221,9 +225,9 @@ impl Pool {
 	pub async fn balance_of(&self, user: Uuid) -> Result<BigDecimal, sqlx::Error> {
 		Ok(
 			sqlx::query!("SELECT balance FROM Balances WHERE gambler_id = $1", user)
-				.fetch_one(&self.0)
+				.fetch_optional(&self.0)
 				.await?
-				.balance
+				.and_then(|b| b.balance)
 				.unwrap_or(BigDecimal::from(0)),
 		)
 	}

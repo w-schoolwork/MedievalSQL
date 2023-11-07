@@ -59,43 +59,44 @@ WHERE events.finished = true
   AND plays.score = (SELECT MAX(score) FROM plays WHERE plays.event_id = events.event_id);
 
 CREATE VIEW BetsOnBy AS
-SELECT bets.event_id as e_id,
-  bets.gambler as g_id,
-  bets.player as p_id,
+SELECT bets.event_id,
+  bets.gambler,
+  bets.player,
   SUM(bets.amount) as bet_amount 
 FROM bets
-GROUP BY e_id, g_id, p_id;
+GROUP BY bets.event_id, bets.gambler, bets.player;
 
 CREATE VIEW BetsOn AS
-SELECT bets.event_id as e_id,
-  bets.player as p_id,
+SELECT bets.event_id,
+  bets.player,
   SUM(bets.amount) as bet_amount
 FROM bets
-GROUP BY e_id, p_id;
+GROUP BY bets.event_id, bets.player;
 
-CREATE VIEW Pool AS
-SELECT bets.event_id as e_id, SUM(amount) as bet_amount
+CREATE VIEW BettingPool AS
+SELECT bets.event_id, SUM(amount) as bet_amount
 FROM bets
 GROUP BY bets.event_id;
 
 CREATE VIEW Shares AS
-SELECT BetsOnBy.g_id as g_id,
-  BetsOnBy.e_id as e_id,
-  BetsOnBy.p_id as p_id,
+SELECT BetsOnBy.gambler,
+  BetsOnBy.event_id,
+  BetsOnBy.player,
   (BetsOnBy.bet_amount / BetsOn.bet_amount) as share
 FROM BetsOnBy, BetsOn
-WHERE BetsOnBy.e_id = BetsOn.e_id
-  AND BetsOnBy.p_id = BetsOn.p_id;
+WHERE BetsOnBy.event_id = BetsOn.event_id
+  AND BetsOnBy.player = BetsOn.player
+  AND BetsOn.bet_amount > 0;
 
 -- Winnings should be calculated by multiplying a gambler's share in the pool for each of the events they gambled on successfully with the size of the pool for that event
 CREATE VIEW Winnings AS 
-SELECT Shares.g_id as g_id,
-  Shares.e_id as e_id,
-  (Shares.share * Pool.bet_amount) as winnings
-FROM Shares, Pool, Winners
-WHERE Shares.e_id = winners.event_id
-  AND Shares.e_id = Pool.e_id
-  AND Shares.p_id = winners.user_id;
+SELECT DISTINCT Shares.gambler,
+  Shares.event_id,
+  (Shares.share * BettingPool.bet_amount) as winnings
+FROM Shares, BettingPool, Winners
+WHERE Shares.event_id = winners.event_id
+  AND Shares.event_id = BettingPool.event_id
+  AND Shares.player = winners.user_id;
 
 -- Balances should be calculated by summing up a user's deposits and winnings, and subtracting out their bets.
 CREATE VIEW Balances AS
@@ -111,5 +112,5 @@ SELECT u.user_id AS gambler_id,
 FROM users u
 LEFT JOIN deposit d ON u.user_id = d.user_id
 LEFT JOIN bets b ON u.user_id = b.gambler
-LEFT JOIN Winnings w ON u.user_id = w.g_id
+LEFT JOIN Winnings w ON u.user_id = w.gambler
 GROUP BY u.user_id;

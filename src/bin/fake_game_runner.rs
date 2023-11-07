@@ -27,10 +27,18 @@ async fn main() -> color_eyre::Result<()> {
 	for i in 0..game_amt {
 		let current_status = fake_games.play_game().await?;
 		println!(
-			"Game {i}/{game_amt}; currency in play changed by {} (should be 0).",
-			current_status.change_in_balance
+			"Game {i}/{game_amt}; currency in play changed by a factor of {}x (should be 1).",
+			current_status.change_in_balance.round(2)
 		);
-		println!("Look at the database, then press enter to continue.");
+		println!(
+			"{}",
+			current_status
+				.user_balances
+				.values()
+				.map(|b| format!("{}\t", b.round(0)))
+				.collect::<String>()
+		);
+		// println!("Look at the database, then press enter to continue.");
 		stdin().lines().next();
 	}
 

@@ -1,10 +1,10 @@
 use crate::{db::Pool, www::login::MakeAccount};
+use num_traits::cast::ToPrimitive;
 use rand::{seq::SliceRandom, thread_rng, Rng};
 use sqlx::types::{chrono::Local, BigDecimal};
 use std::{collections::BTreeMap, ops::Deref, time::Duration};
 use totp_rs::TOTP;
 use uuid::Uuid;
-use num_traits::cast::ToPrimitive;
 
 pub struct FakeGame {
 	users: Vec<Uuid>,
@@ -39,7 +39,9 @@ impl FakeGame {
 			};
 			self.pool.register_user(&mk_user).await?;
 			self.users.push(uuid);
-			self.pool.magic_money(uuid, BigDecimal::from(balance)).await?;
+			self.pool
+				.magic_money(uuid, BigDecimal::from(balance))
+				.await?;
 		}
 
 		Ok(())
@@ -77,23 +79,36 @@ impl FakeGame {
 			self.pool.register_for_game(game, **player).await?;
 		}
 		for gambler in &gamblers {
-			let balance = self.pool.balance_of(**gambler).await?.round(0).to_i64().unwrap_or(0);
+			let balance = self
+				.pool
+				.balance_of(**gambler)
+				.await?
+				.round(0)
+				.to_i64()
+				.unwrap_or(0);
 			if balance <= 0 {
 				println!("{gambler} went bankrupt");
 				continue;
 			}
 			let choice = **players.choose(&mut rng).unwrap();
 			self.pool
-				.wager_on_game(game, **gambler, choice, BigDecimal::from(rng.gen_range(0..balance)))
+				.wager_on_game(
+					game,
+					**gambler,
+					choice,
+					BigDecimal::from(rng.gen_range(0..balance)),
+				)
 				.await?;
 		}
 		for player in &players {
-			self.pool.score_on(game, **player, rng.gen_range(0..=i64::MAX)).await?;
+			self.pool
+				.score_on(game, **player, rng.gen_range(0..=i64::MAX))
+				.await?;
 		}
 		self.pool.end_game(game).await?;
 		// Output game summary
 		let balance_at_end = self.pool.total_balance().await?;
-		let change_in_balance = balance_at_end - balance_at_start;
+		let change_in_balance = balance_at_end / balance_at_start;
 		let mut user_balances = BTreeMap::new();
 		for user in &self.users {
 			let balance = self.pool.balance_of(*user).await?;
