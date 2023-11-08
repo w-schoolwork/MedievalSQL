@@ -100,20 +100,11 @@ WHERE Shares.event_id = winners.event_id
 
 -- Balances should be calculated by summing up a user's deposits and winnings, and subtracting out their bets.
 CREATE VIEW Balances AS
-WITH dep AS (
-  SELECT user_id, amt as amount FROM deposit
-),
-bet AS (
-  SELECT gambler as user_id, amount FROM bets
-),
-win AS (
-  SELECT user_id, amount FROM winnings
-),
-everything AS (
+WITH everything AS (
   SELECT user_id, 0 as amount FROM users
-  UNION SELECT user_id, amount FROM dep
-  UNION SELECT user_id, -amount as amount FROM bet
-  UNION SELECT user_id, amount FROM win
+  UNION SELECT user_id, amt as amount FROM deposit
+  UNION SELECT gambler as user_id, -amount as amount FROM bets
+  UNION SELECT user_id, amount FROM winnings
 )
 SELECT user_id, SUM(amount) as balance
 FROM everything
