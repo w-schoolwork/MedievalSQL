@@ -90,9 +90,9 @@ WHERE BetsOnBy.event_id = BetsOn.event_id
 
 -- Winnings should be calculated by multiplying a gambler's share in the pool for each of the events they gambled on successfully with the size of the pool for that event
 CREATE VIEW Winnings AS 
-SELECT DISTINCT Shares.gambler,
+SELECT DISTINCT Shares.gambler as user_id,
   Shares.event_id,
-  (Shares.share * BettingPool.bet_amount) as winnings
+  (Shares.share * BettingPool.bet_amount) as amount
 FROM Shares, BettingPool, Winners
 WHERE Shares.event_id = winners.event_id
   AND Shares.event_id = BettingPool.event_id
@@ -100,17 +100,21 @@ WHERE Shares.event_id = winners.event_id
 
 -- Balances should be calculated by summing up a user's deposits and winnings, and subtracting out their bets.
 CREATE VIEW Balances AS
-SELECT u.user_id AS gambler_id,
-  COALESCE(SUM(d.amt), 0) AS total_deposits,
-  COALESCE(SUM(b.amount), 0) AS total_bets,
-  COALESCE(SUM(w.winnings), 0) AS total_winnings,
-  (
-    COALESCE(SUM(d.amt), 0)
-    + COALESCE(SUM(w.winnings), 0)
-    - COALESCE(SUM(b.amount), 0)
-  ) AS balance
-FROM users u
-LEFT JOIN deposit d ON u.user_id = d.user_id
-LEFT JOIN bets b ON u.user_id = b.gambler
-LEFT JOIN Winnings w ON u.user_id = w.gambler
-GROUP BY u.user_id;
+WITH dep AS (
+  SELECT user_id, amt as amount FROM deposit
+),
+bet AS (
+  SELECT gambler as user_id, amount FROM bets
+),
+win AS (
+  SELECT user_id, amount FROM winnings
+),
+everything AS (
+  SELECT user_id, 0 as amount FROM users
+  UNION SELECT user_id, amount FROM dep
+  UNION SELECT user_id, -amount as amount FROM bet
+  UNION SELECT user_id, amount FROM win
+)
+SELECT user_id, SUM(amount) as balance
+FROM everything
+GROUP BY user_id;

@@ -224,7 +224,7 @@ impl Pool {
 
 	pub async fn balance_of(&self, user: Uuid) -> Result<BigDecimal, sqlx::Error> {
 		Ok(
-			sqlx::query!("SELECT balance FROM Balances WHERE gambler_id = $1", user)
+			sqlx::query!("SELECT balance FROM Balances WHERE user_id = $1", user)
 				.fetch_optional(&self.0)
 				.await?
 				.and_then(|b| b.balance)
