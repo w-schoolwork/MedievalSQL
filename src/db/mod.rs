@@ -148,6 +148,9 @@ impl Pool {
 		sqlx::query!("INSERT INTO deposit VALUES ($1, $2);", user, amount)
 			.execute(&self.0)
 			.await?;
+		sqlx::query!("REFRESH MATERIALIZED VIEW balances;")
+			.execute(&self.0)
+			.await?;
 		Ok(())
 	}
 
@@ -219,6 +222,9 @@ impl Pool {
 		)
 		.execute(&self.0)
 		.await?;
+		sqlx::query!("REFRESH MATERIALIZED VIEW balances;")
+			.execute(&self.0)
+			.await?;
 		Ok(())
 	}
 
@@ -260,6 +266,9 @@ impl Pool {
 		.execute(&self.0)
 		.await?;
 		sqlx::query!("REFRESH MATERIALIZED VIEW winners;")
+			.execute(&self.0)
+			.await?;
+		sqlx::query!("REFRESH MATERIALIZED VIEW balances;")
 			.execute(&self.0)
 			.await?;
 		Ok(())

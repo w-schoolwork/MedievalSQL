@@ -99,7 +99,7 @@ WHERE Shares.event_id = winners.event_id
   AND Shares.player = winners.user_id;
 
 -- Balances should be calculated by summing up a user's deposits and winnings, and subtracting out their bets.
-CREATE VIEW Balances AS
+CREATE MATERIALIZED VIEW Balances AS
 WITH everything AS (
   SELECT user_id, 0 as amount FROM users
   UNION SELECT user_id, amt as amount FROM deposit

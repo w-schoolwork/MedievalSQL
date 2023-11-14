@@ -39,11 +39,11 @@ async fn main() -> color_eyre::Result<()> {
 				.collect::<String>()
 		);
 		// println!("Look at the database, then press enter to continue.");
-		stdin().lines().next();
+		// stdin().lines().next();
 	}
 
-	println!("Look at the database, then press enter to clean up.");
-	stdin().lines().next();
+	// println!("Look at the database, then press enter to clean up.");
+	// stdin().lines().next();
 
 	Ok(())
 }

@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "REFRESH MATERIALIZED VIEW balances;",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "4debaf0742ff9fc2d007f963a5c47123a73dd9950ccdd7a5d69d4ae5b8c8ce72"
+}

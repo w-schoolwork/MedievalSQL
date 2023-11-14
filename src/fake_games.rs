@@ -96,7 +96,7 @@ impl FakeGame {
 					game,
 					**gambler,
 					choice,
-					BigDecimal::from(rng.gen_range(0..balance)),
+					BigDecimal::from(rng.gen_range((balance / 3)..balance)),
 				)
 				.await?;
 		}
