@@ -212,7 +212,7 @@ impl Pool {
 		}
 		let amt = amt
 			.min(self.balance_of(user).await?)
-			.max(BigDecimal::from(0));
+			.max(BigDecimal::from(1));
 		sqlx::query!(
 			"INSERT INTO bets VALUES ($2, $3, $1, $4)",
 			game,

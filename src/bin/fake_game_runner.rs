@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use clap::Parser;
 use medieval_sql::{db::Pool, fake_games::FakeGame};
 
@@ -22,14 +24,20 @@ async fn main() -> color_eyre::Result<()> {
 	let mut fake_games = FakeGame::new(pool.clone());
 	fake_games.add_users(user_amt, starting_balance).await?;
 
+	println!("game	balance	change	elapsed	users");
 	for i in 0..game_amt {
+		let start = Instant::now();
 		let current_status = fake_games.play_game().await?;
+		// println!(
+		// 	"Game {i}/{game_amt}; currency in play {} changed by a factor of {}x (should be 1).",
+		// 	current_status.balance_at_end.round(5),
+		// 	current_status.change_in_balance.round(5)
+		// );
 		println!(
-			"Game {i}/{game_amt}; currency in play changed by a factor of {}x (should be 1).",
-			current_status.change_in_balance.round(2)
-		);
-		println!(
-			"{}",
+			"{i}	{}	{}	{}	{}",
+			current_status.balance_at_end.round(10),
+			current_status.change_in_balance.round(10),
+			start.elapsed().as_secs_f32(),
 			current_status
 				.user_balances
 				.values()

@@ -14,6 +14,7 @@ pub struct FakeGame {
 
 pub struct GameSummary {
 	pub change_in_balance: BigDecimal,
+	pub balance_at_end: BigDecimal,
 	pub user_balances: BTreeMap<Uuid, BigDecimal>,
 }
 
@@ -87,7 +88,7 @@ impl FakeGame {
 				.to_i64()
 				.unwrap_or(0);
 			if balance <= 0 {
-				println!("{gambler} went bankrupt");
+				// println!("{gambler} went bankrupt");
 				continue;
 			}
 			let choice = **players.choose(&mut rng).unwrap();
@@ -108,7 +109,7 @@ impl FakeGame {
 		self.pool.end_game(game).await?;
 		// Output game summary
 		let balance_at_end = self.pool.total_balance().await?;
-		let change_in_balance = balance_at_end / balance_at_start;
+		let change_in_balance = balance_at_end.clone() / balance_at_start;
 		let mut user_balances = BTreeMap::new();
 		for user in &self.users {
 			let balance = self.pool.balance_of(*user).await?;
@@ -116,6 +117,7 @@ impl FakeGame {
 		}
 		Ok(GameSummary {
 			change_in_balance,
+			balance_at_end,
 			user_balances,
 		})
 	}
