@@ -1,5 +1,3 @@
-use std::io::stdin;
-
 use clap::Parser;
 use medieval_sql::{db::Pool, fake_games::FakeGame};
 
