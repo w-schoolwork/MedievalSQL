@@ -4,8 +4,6 @@ use rocket::Rocket;
 #[rocket::main]
 async fn main() -> color_eyre::Result<()> {
 	color_eyre::install()?;
-	let subscriber = tracing_subscriber::FmtSubscriber::new();
-	tracing::subscriber::set_global_default(subscriber)?;
 	// the async main macro is a bit wack so move into another function asap
 	inner().await
 }
